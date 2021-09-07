@@ -3,7 +3,7 @@
 //
 
 const Contract = require("./evmasm");
-const { unstringifyBigInts } = require("snarkjs");
+const { unstringifyBigInts } = require("tornado-snarkjs");
 const Web3Utils = require("web3-utils");
 
 const { C:K, M } = unstringifyBigInts(require("./poseidon_constants.json"));

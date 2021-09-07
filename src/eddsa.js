@@ -1,5 +1,5 @@
 const createBlakeHash = require("blake-hash");
-const bigInt = require("snarkjs").bigInt;
+const bigInt = require("tornado-snarkjs").bigInt;
 const babyJub = require("./babyjub");
 const pedersenHash = require("./pedersenHash").hash;
 const mimc7 = require("./mimc7");

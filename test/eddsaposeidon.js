@@ -1,6 +1,6 @@
 const chai = require("chai");
 const path = require("path");
-const snarkjs = require("snarkjs");
+const snarkjs = require("tornado-snarkjs");
 const compiler = require("circom");
 
 const eddsa = require("../src/eddsa.js");

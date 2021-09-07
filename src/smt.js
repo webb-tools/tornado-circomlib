@@ -1,4 +1,4 @@
-const bigInt = require("snarkjs").bigInt;
+const bigInt = require("tornado-snarkjs").bigInt;
 
 const SMTMemDB = require("./smt_memdb");
 const {hash0, hash1} = require("./smt_hashes_poseidon");

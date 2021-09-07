@@ -1,6 +1,6 @@
 const chai = require("chai");
 const path = require("path");
-const snarkjs = require("snarkjs");
+const snarkjs = require("tornado-snarkjs");
 const crypto = require("crypto");
 
 const compiler = require("circom");

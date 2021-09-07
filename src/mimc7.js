@@ -1,5 +1,5 @@
-const bn128 = require("snarkjs").bn128;
-const bigInt = require("snarkjs").bigInt;
+const bn128 = require("tornado-snarkjs").bn128;
+const bigInt = require("tornado-snarkjs").bigInt;
 const Web3Utils = require("web3-utils");
 const F = bn128.Fr;
 

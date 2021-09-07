@@ -1,5 +1,5 @@
 const chai = require("chai");
-const snarkjs = require("snarkjs");
+const snarkjs = require("tornado-snarkjs");
 
 const eddsa = require("../src/eddsa.js");
 const babyJub = require("../src/babyjub.js");

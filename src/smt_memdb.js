@@ -1,4 +1,4 @@
-const bigInt = require("snarkjs").bigInt;
+const bigInt = require("tornado-snarkjs").bigInt;
 
 class SMTMemDb {
     constructor() {

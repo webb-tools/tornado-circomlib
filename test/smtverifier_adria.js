@@ -1,5 +1,5 @@
 const path = require("path");
-const snarkjs = require("snarkjs");
+const snarkjs = require("tornado-snarkjs");
 const compiler = require("circom");
 const fs = require("fs")
 
