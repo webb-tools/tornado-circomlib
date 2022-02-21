@@ -64,10 +64,12 @@ template Poseidon(nInputs) {
     var C[t*(nRoundsF + nRoundsP)] = POSEIDON_C(t);
     var M[t][t] = POSEIDON_M(t);
 
-    component ark[nRoundsF + nRoundsP - 1];
+    component ark[nRoundsF];
     component sigmaF[nRoundsF - 1][t];
     component sigmaP[nRoundsP];
-    component mix[nRoundsF + nRoundsP - 1];
+    component partialR[nRoundsP];
+    component mix[nRoundsF - 1];
+    component pix;
 
     var k;
     // begin 
@@ -90,20 +92,20 @@ template Poseidon(nInputs) {
     /*     ); */
     /* } */
     var r;
-    for(r=0; r < nRoundsF/2-1; r++) {
-        ark[r] = Ark(t, C, r*t);
+    for(r=0; r < nRoundsF/2; r++) {
+        ark[r+1] = Ark(t, C, r*t);
         for (var j=0; j<t; j++) {
-            if (j<nInputs) {
-                ark[r].in[j] <== inputs[j];
+            if (r==0) {
+                ark[r+1].in[j] <== ark[r].out[j];
             } else {
-                ark[r].in[j] <== 0;
+                ark[r+1].in[j] <== mix[r-1].out[j];
             }
         } 
 
         mix[r] = Mix(t, M);
         for (var j=0; j<t; j++) {
             sigmaF[r][j] = Sigma();
-            sigmaF[r][j].in <== ark[r].out[j];
+            sigmaF[r][j].in <== ark[r+1].out[j];
             mix[r].in[j] <== sigmaF[r][j].out;
         }
     }
@@ -115,13 +117,13 @@ template Poseidon(nInputs) {
     /* state = state.map((_, i) => */
     /*     state.reduce((acc, a, j) => F.add(acc, F.mul(P[j][i], a)), F.zero) */
     /* ); */
-    ark[r] = Ark(t, C, r);
+    ark[r++] = Ark(t, C, r);
 
-    mix[r] = Mix(t, P);
+    pix = Mix(t, P);
     for (var j=0; j<t; j++) {
         sigmaF[r][j] = Sigma();
         sigmaF[r][j].in <== ark[r].out[j];
-        mix[r].in[j] <== sigmaF[r][j].out;
+        pix[r].in[j] <== sigmaF[r][j].out;
     }
     r++; 
 
@@ -138,16 +140,15 @@ template Poseidon(nInputs) {
     /*     state[0] =s0; */
 
     // First iteration is done outside of the loop in order to match inputs correctly in it
-    sigmaP[r] = Sigma();
-    sigmaP[p].in <== mix[r-1].out[0];
+    sigmaP[0] = Sigma();
+    sigmaP[0].in <== pix.out[0];
 
-    partialR[r] = PartialRound(t, S, r);
+    partialR[0] = PartialRound(t, S, r);
 
-    partialR[r].in[0] <== sigmaP[p].out;
+    partialR[0].in[0] <== sigmaP[0].out;
     for(var j=1; j<t; j++) {
-        partialR[r].in[j] <== mix[r-1].out[j];
+        partialR[0].in[j] <== pix.out[j];
     }
-    r++; 
 
     for(p=1; p<nRoundsP; p++) {
         sigmaP[p] = Sigma();
@@ -155,30 +156,50 @@ template Poseidon(nInputs) {
 
         partialR[p] = PartialRound(t, S, p);
 
-        partialR[r].in[0] <== sigmaP[p].out;
+        partialR[p].in[0] <== sigmaP[p].out;
         for(var j=1; j<t; j++) {
             partialR[p].in[j] <== partialR[p-1].out[j];
         }
         r++; 
     }
+    
+    // r == 0 
+    k = nRoundsF/2+1;
+
+    ark[k] = Ark(t, C, t*r);
+    for (var j=0; j<t; j++) {
+        ark[k].in[j] <== mix[k-1].out[j];
+    }
+
+    mix[k] = Mix(t, M);
+    for (var j=0; j<t; j++) {
+        sigmaF[k][j] = Sigma();
+        sigmaF[k][j].in <== ark[k].out[j];
+        mix[k].in[j] <== sigmaF[k][j].out;
+    }
 
     for(r=1; r < nRoundsF/2-1; r++) {
-        ark[r] = Ark(t, C, t*r);
-        ark[r].in[j] <== mix[r-1].out[j];
-        k = r < nRoundsF/2 ? r : r - nRoundsP;
-        mix[r] = Mix(t, M);
+        k = r + nRoundsF/2;
+
+        ark[k] = Ark(t, C, t*r);
+        for (var j=0; j<t; j++) {
+            ark[k].in[j] <== mix[k-1].out[j];
+        }
+
+        mix[k] = Mix(t, M);
         for (var j=0; j<t; j++) {
             sigmaF[k][j] = Sigma();
-            sigmaF[k][j].in <== ark[r].out[j];
-            mix[r].in[j] <== sigmaF[k][j].out;
+            sigmaF[k][j].in <== ark[k].out[j];
+            mix[k].in[j] <== sigmaF[k][j].out;
         }
     }
 
     for (var j=0; j<t; j++) {
-        mix[r] = Mix(t, M);
+        k = r + nRoundsF/2;
+        mix[k] = Mix(t, M);
         sigmaF[k][j] = Sigma();
-        sigmaF[k][j].in <== mix[r-1].out[j];
-        mix[r].in[j] <== sigmaF[k][j].out;
+        sigmaF[k][j].in <== mix[k-1].out[j];
+        mix[k].in[j] <== sigmaF[k][j].out;
     }
     out <== mix[r].out[0];
 
